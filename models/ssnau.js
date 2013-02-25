@@ -64,7 +64,7 @@ util.traverseFolder = function (root, config, f) {
     }
     //setup config
     config = util.mixin({
-        "ignore":[]
+        "ignore":[] //sample:["temp.js", /~$/, /^x/], it can be String or Regex
     }, config, true);
     // if root does not exists, end
     if (!exists(root)) {
@@ -82,16 +82,22 @@ util.traverseFolder = function (root, config, f) {
             return;
         }
 
+        // detecting if we should ignore this path
+        var baseName = Path.basename(path);
+        for (var i = 0; i < config.ignore.length; i++) {
+            var ig = config.ignore[i];
+            var fit = (ig instanceof RegExp) ? ig.test(baseName) : (ig == baseName);
+            // Should be ignore
+            if (fit) {
+                console.log("ignoring " + path);
+                return;
+            }
+        }
+
         if (isDir(path)) {
             var subPaths = fs.readdirSync(path);
-            subPaths.forEach(function (v, index) {
-                var curPath = Path.resolve(path, v);
-                if (config.ignore.indexOf(v) > -1) {
-                    console.log("ignoring " + curPath);
-                    return;
-                }
-
-                traverse(curPath);
+            subPaths.forEach(function (v) {
+                traverse(Path.resolve(path, v));
             });
         }
 
@@ -142,8 +148,8 @@ util.saveToFile = function (filename, data, encode) {
  */
 util.createFolderRecursively = function (filename) {
     file_path_array = filename.split(Path.sep);
-    if (!file_path_array.length) return;
-    tmpPath = file_path_array.shift();
+    if (!file_path_array.length) return false;
+    var tmpPath = file_path_array.shift();
 
     while (true) {
         if (fs.existsSync(tmpPath)) {
@@ -155,4 +161,18 @@ util.createFolderRecursively = function (filename) {
         }
     }
 }
+/**
+ * 生成一个随机整数，最小值为min,最大值为max
+ * 如randomInt(5,10)，则可能的返回值为[5,6,7,8,9,10]
+ * @param  {[type]}  min   [description]
+ * @param  {[type]}  max   [description]
+ * @return {[type]}        [description]
+ */
+util.randomInt = function (min, max) {
+    var diff = max - min;
+    var rd = Math.random() * (diff + 1);
+    var res = Math.floor(rd + min);
+    return res > max ? max : res;
+}
+
 exports.util = util;

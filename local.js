@@ -4,8 +4,9 @@ var util = require('./models/ssnau').util;
 var args = util.getArgs();
 
 var root = args[0];
-var container = [];
-util.traverseFolder(root, {"ignore": [".git"]}, function(path){
+var container = [],
+    ignoreList = [".git", /(gif|jpg|png|\d|~)$/i];
+util.traverseFolder(root, {"ignore": ignoreList}, function(path){
     var baseName = Path.basename(path);
     if (!container[baseName]) {
         container[baseName] = [];
@@ -15,11 +16,13 @@ util.traverseFolder(root, {"ignore": [".git"]}, function(path){
 
 var result = [];
 util.eachProp(container, function(val, prop){
+    var isMutil = val.length > 1;
     result.push(prop);
-    if (val.length > 1) result.push("*multi*");
+    isMutil && result.push("*start multi*");
     val.forEach(function(v) {
         result.push("[Path]" + v);
     })
+    isMutil && result.push("*end multi*");
 });
 
 util.saveToFile("tmp/file_path", result.join("\r\n"));
