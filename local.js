@@ -5,13 +5,15 @@ var args = util.getArgs();
 
 var root = args[0];
 var container = [],
-    ignoreList = [".git", /(gif|jpg|png|\d|~)$/i];
+    ignoreList = [".git", /(gif|jpg|png|bmp|\d|~)$/i];
+
 util.traverseFolder(root, {"ignore": ignoreList}, function(path){
     var baseName = Path.basename(path);
+    var relative = Path.relative(root, path);
     if (!container[baseName]) {
         container[baseName] = [];
     }
-    container[baseName].push(path);
+    container[baseName].push(relative);
 });
 
 var result = [];
@@ -21,7 +23,7 @@ util.eachProp(container, function(val, prop){
     isMutil && result.push("*start multi*");
     val.forEach(function(v) {
         result.push("[Path]" + v);
-    })
+    });
     isMutil && result.push("*end multi*");
 });
 
